@@ -19,7 +19,6 @@ void main(){
     float r = texture(DiffuseSampler, texCoord + direction * offset).r;
     float g = texture(DiffuseSampler, texCoord).g;
     float b = texture(DiffuseSampler, texCoord - direction * offset).b;
-    float a = texture(DiffuseSampler, texCoord).a;
 
-    fragColor = vec4(r, g, b, a);
+    fragColor = vec4(r, g, b, 1.0);
 }
