@@ -36,6 +36,7 @@ public class ASCreativeModeTabs {
                         output.accept(ExampleItemRegistry.EXAMPLE_IMPACT_FRAME_PURPLE.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_IMPACT_FRAME_WHITE_ABERRATION.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_CHROMATIC_ABERRATION.get());
+                        output.accept(ExampleItemRegistry.EXAMPLE_TRAIL.get());
                         // Armor
                         output.accept(ExampleItemRegistry.EXAMPLE_ARMOR_HELMET.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_ARMOR_CHESTPLATE.get());

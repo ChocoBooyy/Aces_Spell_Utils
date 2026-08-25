@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import net.acetheeldritchking.aces_spell_utils.AcesSpellUtils;
 import net.acetheeldritchking.aces_spell_utils.items.weapons.MagicGunItem;
 import net.acetheeldritchking.aces_spell_utils.registries.ASAttributeRegistry;
+import net.acetheeldritchking.aces_spell_utils.trail.TrailManager;
 import net.acetheeldritchking.aces_spell_utils.utils.ASTags;
 import net.acetheeldritchking.aces_spell_utils.utils.ASUtils;
 import net.acetheeldritchking.aces_spell_utils.utils.AcesSpellUtilsConfig;
@@ -35,6 +36,8 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.core.net.Priority;
 
@@ -737,5 +740,17 @@ public class AcesSpellUtilsServerEvents {
             AcesSpellUtils.LOGGER.debug("VIGOR REAP: HP: " + livingEntity.getHealth());
             AcesSpellUtils.LOGGER.debug("VIGOR REAP: Healed for: " + recoveryAmount);
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(ServerTickEvent.Post event)
+    {
+        TrailManager.tick();
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event)
+    {
+        TrailManager.clear();
     }
 }
