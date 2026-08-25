@@ -8,6 +8,7 @@ import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.Exampl
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExamplePassiveAbilitySpellbook;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExamplePresetCurioItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExampleSheathCurioItem;
+import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleChromaticAberrationItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleImpactFrameItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleLootBagItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExamplePresetStaffItem;
@@ -63,6 +64,7 @@ public class ExampleItemRegistry {
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_BLUE = ITEMS.register("example_impact_frame_blue", () -> new ExampleImpactFrameItem(new Item.Properties(), 0x2E86FF));
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_GREEN = ITEMS.register("example_impact_frame_green", () -> new ExampleImpactFrameItem(new Item.Properties(), 0x39FF6A));
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_PURPLE = ITEMS.register("example_impact_frame_purple", () -> new ExampleImpactFrameItem(new Item.Properties(), 0xB532FF));
+    public static final DeferredHolder<Item, Item> EXAMPLE_CHROMATIC_ABERRATION = ITEMS.register("example_chromatic_aberration", () -> new ExampleChromaticAberrationItem(new Item.Properties()));
 
     // Armor
     public static final DeferredHolder<Item, Item> EXAMPLE_ARMOR_HELMET = ITEMS.register("example_armor_helmet", () -> new ExampleWarlockArmorItem(ArmorItem.Type.HELMET, ItemPropertiesHelper.equipment(1).fireResistant().durability(ArmorItem.Type.HELMET.getDurability(40))));

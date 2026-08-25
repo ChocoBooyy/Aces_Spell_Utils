@@ -3,6 +3,7 @@ package net.acetheeldritchking.aces_spell_utils.events;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
 import net.acetheeldritchking.aces_spell_utils.AcesSpellUtils;
+import net.acetheeldritchking.aces_spell_utils.client.chromaticaberration.ChromaticAberrationEffect;
 import net.acetheeldritchking.aces_spell_utils.client.impactframe.ImpactFrameEffect;
 import net.acetheeldritchking.aces_spell_utils.items.weapons.MagicGunItem;
 import net.acetheeldritchking.aces_spell_utils.registries.ExampleItemRegistry;
@@ -72,6 +73,7 @@ public class AcesSpellUtilsClient {
     public static void onClientTick(ClientTickEvent.Post event)
     {
         ImpactFrameEffect.tick();
+        ChromaticAberrationEffect.tick();
     }
 
     // Runs after the hand is drawn, before the HUD, so the flash covers the held item too
@@ -79,5 +81,6 @@ public class AcesSpellUtilsClient {
     public static void onRenderGui(RenderGuiEvent.Pre event)
     {
         ImpactFrameEffect.process(event.getPartialTick().getGameTimeDeltaPartialTick(false));
+        ChromaticAberrationEffect.process(event.getPartialTick().getGameTimeDeltaPartialTick(false));
     }
 }
