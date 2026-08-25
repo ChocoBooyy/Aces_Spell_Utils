@@ -14,7 +14,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class PayloadHandler {
     @SubscribeEvent
     public static void register(final RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar payloadRegistrar = event.registrar(AcesSpellUtils.MOD_ID).versioned("1.0.0").optional();
+        final PayloadRegistrar payloadRegistrar = event.registrar(AcesSpellUtils.MOD_ID).versioned("1.1.0").optional();
 
 
         payloadRegistrar.playToClient(AddShaderEffectPacket.TYPE, AddShaderEffectPacket.STREAM_CODEC, AddShaderEffectPacket::handle);

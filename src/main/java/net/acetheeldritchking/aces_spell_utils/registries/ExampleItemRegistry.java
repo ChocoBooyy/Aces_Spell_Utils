@@ -64,6 +64,7 @@ public class ExampleItemRegistry {
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_BLUE = ITEMS.register("example_impact_frame_blue", () -> new ExampleImpactFrameItem(new Item.Properties(), 0x2E86FF));
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_GREEN = ITEMS.register("example_impact_frame_green", () -> new ExampleImpactFrameItem(new Item.Properties(), 0x39FF6A));
     public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_PURPLE = ITEMS.register("example_impact_frame_purple", () -> new ExampleImpactFrameItem(new Item.Properties(), 0xB532FF));
+    public static final DeferredHolder<Item, Item> EXAMPLE_IMPACT_FRAME_WHITE_ABERRATION = ITEMS.register("example_impact_frame_white_aberration", () -> new ExampleImpactFrameItem(new Item.Properties(), 0xFFFFFF, 0.4f));
     public static final DeferredHolder<Item, Item> EXAMPLE_CHROMATIC_ABERRATION = ITEMS.register("example_chromatic_aberration", () -> new ExampleChromaticAberrationItem(new Item.Properties()));
 
     // Armor
