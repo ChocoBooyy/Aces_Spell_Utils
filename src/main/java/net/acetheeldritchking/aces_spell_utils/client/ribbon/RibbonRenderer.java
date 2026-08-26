@@ -58,6 +58,17 @@ public final class RibbonRenderer {
         return i == last && head != null ? head : points.get(i);
     }
 
+    private static Vec3 direction(Vec3 from, Vec3 to) {
+        Vec3 seg = to.subtract(from);
+        double len = seg.length();
+        return len < 1.0E-6 ? null : seg.scale(1.0 / len);
+    }
+
+    private static Vec3 normalized(Vec3 vec) {
+        double len = vec.length();
+        return len < 1.0E-6 ? null : vec.scale(1.0 / len);
+    }
+
     private static void emit(Matrix4f matrix, VertexConsumer consumer, ActiveRibbon ribbon, Vec3 cam, Vec3 head) {
         List<Vec3> points = ribbon.points();
         int last = points.size() - 1;
@@ -65,22 +76,40 @@ public final class RibbonRenderer {
             return;
         }
         RibbonConfig config = ribbon.config();
-        for (int i = 0; i < last; i++) {
+
+        Vec3[] at = new Vec3[last + 1];
+        for (int i = 0; i <= last; i++) {
             // the head point is interpolated with the partial tick so the strip stays attached to the entity between ticks
-            Vec3 a = pointAt(points, i, last, head).subtract(cam);
-            Vec3 c = pointAt(points, i + 1, last, head).subtract(cam);
-            Vec3 seg = c.subtract(a);
-            double len = seg.length();
-            // a zero length segment has no direction, and a point at the camera has no view vector
-            if (len < 1.0E-6 || a.lengthSqr() < 1.0E-12) {
+            at[i] = pointAt(points, i, last, head).subtract(cam);
+        }
+
+        // one side vector per point, shared by both quads meeting there, so a bend cannot open a seam
+        Vec3[] sides = new Vec3[last + 1];
+        double[] miters = new double[last + 1];
+        for (int i = 0; i <= last; i++) {
+            Vec3 in = i > 0 ? direction(at[i - 1], at[i]) : null;
+            Vec3 out = i < last ? direction(at[i], at[i + 1]) : null;
+            Vec3 dir = in == null ? out : (out == null ? in : normalized(in.add(out)));
+            // a point sitting on the camera has no view vector to build a perpendicular from
+            if (dir == null || at[i].lengthSqr() < 1.0E-12) {
                 continue;
             }
-            Vec3 dir = seg.scale(1.0 / len);
-            Vec3 side = dir.cross(a.scale(-1.0).normalize()).normalize();
+            sides[i] = normalized(dir.cross(at[i].scale(-1.0).normalize()));
+            double half = in == null || out == null ? 1.0 : dir.dot(out);
+            // a bend thins the strip unless the joint widens to meet it, capped so a hairpin cannot spike
+            miters[i] = half < 0.5 ? 2.0 : 1.0 / half;
+        }
+
+        for (int i = 0; i < last; i++) {
+            if (sides[i] == null || sides[i + 1] == null) {
+                continue;
+            }
+            Vec3 a = at[i];
+            Vec3 c = at[i + 1];
             float t0 = (float) i / last;
             float t1 = (float) (i + 1) / last;
-            Vec3 s0 = side.scale(config.width().at(t0));
-            Vec3 s1 = side.scale(config.width().at(t1));
+            Vec3 s0 = sides[i].scale(config.width().at(t0) * miters[i]);
+            Vec3 s1 = sides[i + 1].scale(config.width().at(t1) * miters[i + 1]);
             int c0 = config.color().at(t0);
             int c1 = config.color().at(t1);
             int r0 = (c0 >> 16) & 0xFF;
@@ -89,8 +118,8 @@ public final class RibbonRenderer {
             int r1 = (c1 >> 16) & 0xFF;
             int g1 = (c1 >> 8) & 0xFF;
             int b1 = c1 & 0xFF;
-            int a0 = Mth.clamp((int) (config.alpha().at(t0) * 255.0F), 0, 255);
-            int a1 = Mth.clamp((int) (config.alpha().at(t1) * 255.0F), 0, 255);
+            int a0 = Mth.clamp(Math.round(config.alpha().at(t0) * 255.0F), 0, 255);
+            int a1 = Mth.clamp(Math.round(config.alpha().at(t1) * 255.0F), 0, 255);
             consumer.addVertex(matrix, (float) (a.x - s0.x), (float) (a.y - s0.y), (float) (a.z - s0.z)).setColor(r0, g0, b0, a0);
             consumer.addVertex(matrix, (float) (a.x + s0.x), (float) (a.y + s0.y), (float) (a.z + s0.z)).setColor(r0, g0, b0, a0);
             consumer.addVertex(matrix, (float) (c.x + s1.x), (float) (c.y + s1.y), (float) (c.z + s1.z)).setColor(r1, g1, b1, a1);
