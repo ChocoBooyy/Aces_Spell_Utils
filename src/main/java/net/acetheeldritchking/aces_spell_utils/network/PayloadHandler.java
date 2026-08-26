@@ -21,6 +21,7 @@ public class PayloadHandler {
         payloadRegistrar.playToClient(RemoveShaderEffectPacket.TYPE, RemoveShaderEffectPacket.STREAM_CODEC, RemoveShaderEffectPacket::handle);
         payloadRegistrar.playToClient(TriggerImpactFramePacket.TYPE, TriggerImpactFramePacket.STREAM_CODEC, TriggerImpactFramePacket::handle);
         payloadRegistrar.playToClient(TriggerChromaticAberrationPacket.TYPE, TriggerChromaticAberrationPacket.STREAM_CODEC, TriggerChromaticAberrationPacket::handle);
+        payloadRegistrar.playToClient(TriggerRibbonPacket.TYPE, TriggerRibbonPacket.STREAM_CODEC, TriggerRibbonPacket::handle);
     }
 
     public static void handleClientBoundShaderEffect(String modid, String location){

@@ -17,6 +17,7 @@ import net.acetheeldritchking.aces_spell_utils.trail.TrailManager;
 import net.acetheeldritchking.aces_spell_utils.utils.ASTags;
 import net.acetheeldritchking.aces_spell_utils.utils.ASUtils;
 import net.acetheeldritchking.aces_spell_utils.utils.AcesSpellUtilsConfig;
+import net.acetheeldritchking.aces_spell_utils.utils.RibbonHandler;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -35,6 +36,7 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -746,11 +748,22 @@ public class AcesSpellUtilsServerEvents {
     public static void onServerTick(ServerTickEvent.Post event)
     {
         TrailManager.tick();
+        RibbonHandler.pruneDead();
     }
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event)
     {
         TrailManager.clear();
+        RibbonHandler.clear();
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event)
+    {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer)
+        {
+            RibbonHandler.resend(serverPlayer, event.getTarget());
+        }
     }
 }
