@@ -1,7 +1,11 @@
 package net.acetheeldritchking.aces_spell_utils.network;
 
+import io.netty.handler.codec.DecoderException;
 import net.acetheeldritchking.aces_spell_utils.AcesSpellUtils;
 import net.acetheeldritchking.aces_spell_utils.client.ribbon.RibbonManager;
+import net.acetheeldritchking.aces_spell_utils.ribbon.ColorRamp;
+import net.acetheeldritchking.aces_spell_utils.ribbon.Curve;
+import net.acetheeldritchking.aces_spell_utils.ribbon.Easing;
 import net.acetheeldritchking.aces_spell_utils.ribbon.RibbonConfig;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,42 +21,74 @@ public class TriggerRibbonPacket implements CustomPacketPayload {
 
     private final int entityId;
     private final boolean attach;
-    private final int color;
-    private final float width;
-    private final int length;
-    private final float alpha;
+    private final RibbonConfig config;
 
-    public TriggerRibbonPacket(int entityId, boolean attach, int color, float width, int length, float alpha) {
+    public TriggerRibbonPacket(int entityId, boolean attach, RibbonConfig config) {
         this.entityId = entityId;
         this.attach = attach;
-        this.color = color;
-        this.width = width;
-        this.length = length;
-        this.alpha = alpha;
+        this.config = config;
     }
 
     public TriggerRibbonPacket(FriendlyByteBuf buf) {
         entityId = buf.readInt();
         attach = buf.readBoolean();
-        color = buf.readInt();
-        width = buf.readFloat();
-        length = buf.readInt();
-        alpha = buf.readFloat();
+        config = readConfig(buf);
     }
 
     public void write(FriendlyByteBuf buf) {
         buf.writeInt(entityId);
         buf.writeBoolean(attach);
-        buf.writeInt(color);
-        buf.writeFloat(width);
-        buf.writeInt(length);
-        buf.writeFloat(alpha);
+        writeConfig(buf, config);
+    }
+
+    private static void writeConfig(FriendlyByteBuf buf, RibbonConfig config) {
+        int[] colors = config.color().colors();
+        buf.writeVarInt(colors.length);
+        for (int color : colors) {
+            buf.writeInt(color);
+        }
+        buf.writeByte(config.color().easing().ordinal());
+        writeCurve(buf, config.width());
+        writeCurve(buf, config.alpha());
+        buf.writeVarInt(config.length());
+        buf.writeBoolean(config.additive());
+    }
+
+    private static RibbonConfig readConfig(FriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        // no valid sender writes a count outside this range, so treat it as a malformed packet
+        if (count < 1 || count > ColorRamp.MAX_STOPS) {
+            throw new DecoderException("Ribbon colour stop count out of range: " + count);
+        }
+        int[] colors = new int[count];
+        for (int i = 0; i < count; i++) {
+            colors[i] = buf.readInt();
+        }
+        ColorRamp ramp = new ColorRamp(colors, Easing.byOrdinal(buf.readByte()));
+        Curve width = readCurve(buf);
+        Curve alpha = readCurve(buf);
+        int length = buf.readVarInt();
+        boolean additive = buf.readBoolean();
+        return new RibbonConfig(ramp, width, alpha, length, additive);
+    }
+
+    private static void writeCurve(FriendlyByteBuf buf, Curve curve) {
+        buf.writeFloat(curve.head());
+        buf.writeFloat(curve.tail());
+        buf.writeByte(curve.easing().ordinal());
+    }
+
+    private static Curve readCurve(FriendlyByteBuf buf) {
+        float head = buf.readFloat();
+        float tail = buf.readFloat();
+        Easing easing = Easing.byOrdinal(buf.readByte());
+        return new Curve(head, tail, easing);
     }
 
     public static void handle(TriggerRibbonPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (packet.attach) {
-                RibbonManager.attach(packet.entityId, new RibbonConfig(packet.color, packet.width, packet.length, packet.alpha));
+                RibbonManager.attach(packet.entityId, packet.config);
             } else {
                 RibbonManager.detach(packet.entityId);
             }

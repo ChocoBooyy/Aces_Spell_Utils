@@ -68,6 +68,6 @@ public final class RibbonHandler {
     }
 
     private static TriggerRibbonPacket packet(Entity entity, boolean attach, RibbonConfig config) {
-        return new TriggerRibbonPacket(entity.getId(), attach, config.color(), config.width(), config.length(), config.alpha());
+        return new TriggerRibbonPacket(entity.getId(), attach, config);
     }
 }
