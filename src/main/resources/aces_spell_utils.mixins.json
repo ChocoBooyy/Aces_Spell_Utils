@@ -4,7 +4,8 @@
   "refmap": "aces_spell_utils.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "server.LivingEntityMixin"
+    "server.LivingEntityMixin",
+    "server.ServerPlayerMixin"
   ],
   "client": [
   ],

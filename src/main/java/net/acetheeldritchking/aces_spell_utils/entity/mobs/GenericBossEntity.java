@@ -12,7 +12,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 
-public abstract class GenericBossEntity extends AbstractSpellCastingMob implements Enemy, IClientEventEntity {
+public abstract class GenericBossEntity extends AbstractSpellCastingMob implements Enemy, IClientEventEntity, IPhaseMusicEntity {
     // This class is a generic and abstract class used for bosses
     // In here are helpful methods for handling phases and boss music
     public GenericBossEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
@@ -39,16 +39,19 @@ public abstract class GenericBossEntity extends AbstractSpellCastingMob implemen
     public int usePhaseForMusicChange;
 
     // Methods for above values
+    @Override
     public boolean hasCustomMusic()
     {
         return hasCustomMusic;
     }
 
+    @Override
     public boolean changeMusicOnPhaseChange()
     {
         return changeMusicOnPhaseChange;
     }
 
+    @Override
     public boolean hasTransitionPhase()
     {
         return hasTransitionPhase;
@@ -56,6 +59,7 @@ public abstract class GenericBossEntity extends AbstractSpellCastingMob implemen
 
     // Input which phase you want to have transition music
     // Put in an integer between 1-11 to denote the phase, this lines up with the enum values for the phases
+    @Override
     public int usePhaseAsTransition()
     {
         return usePhaseAsTransition;
@@ -63,18 +67,21 @@ public abstract class GenericBossEntity extends AbstractSpellCastingMob implemen
 
     // Input which phase you want to have alt music
     // Put in an integer between 1-11 to denote the phase, this lines up with the enum values for the phases
+    @Override
     public int usePhaseForMusicChange()
     {
         return usePhaseForMusicChange;
     }
 
     // Used for transition music
+    @Override
     public SoundEvent getTransitionMusic()
     {
         return null;
     }
 
     // Used for music to get for other phases
+    @Override
     public SoundEvent getOtherPhaseMusic()
     {
         return null;
@@ -86,7 +93,7 @@ public abstract class GenericBossEntity extends AbstractSpellCastingMob implemen
     }
 
     // Phase stuff //
-    public enum Phase
+    /*public enum Phase
     {
         FirstPhase(0),
         SecondPhase(1),
@@ -108,23 +115,27 @@ public abstract class GenericBossEntity extends AbstractSpellCastingMob implemen
         {
             this.value = value;
         }
-    }
+    }*/
 
+    @Override
     public void setPhase(int phase)
     {
         this.entityData.set(PHASE, phase);
     }
 
+    @Override
     public void setPhase(Phase phase)
     {
         this.setPhase(phase.value);
     }
 
+    @Override
     public int getPhase()
     {
         return this.entityData.get(PHASE);
     }
 
+    @Override
     public boolean isPhase(Phase phase)
     {
         return phase.value == getPhase();

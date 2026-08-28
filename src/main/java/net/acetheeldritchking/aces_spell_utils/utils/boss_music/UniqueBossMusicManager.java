@@ -1,7 +1,8 @@
 package net.acetheeldritchking.aces_spell_utils.utils.boss_music;
 
-import net.acetheeldritchking.aces_spell_utils.entity.mobs.GenericUniqueBossEntity;
-import net.acetheeldritchking.aces_spell_utils.entity.mobs.GenericUniqueBossEntity;
+import net.acetheeldritchking.aces_spell_utils.entity.mobs.IPhaseMusicEntity;
+import net.acetheeldritchking.aces_spell_utils.entity.mobs.IPhaseMusicEntity;
+import net.acetheeldritchking.aces_spell_utils.entity.mobs.IPhaseMusicEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.sounds.SoundEvent;
@@ -14,14 +15,18 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
-
+@Deprecated
+/***
+ * I am going to make a new music manager, the only reason
+ * I'm not deleting this is so that other mods don't get bricked
+ */
 @EventBusSubscriber(Dist.CLIENT)
 public class UniqueBossMusicManager {
     @Nullable
     private static UniqueBossMusicManager INSTANCE;
     static final SoundSource SOUND_SOURCE = SoundSource.RECORDS;
 
-    GenericUniqueBossEntity genericBoss;
+    IPhaseMusicEntity genericBoss;
     final SoundManager manager;
     BossSoundInstance bossMusic;
     BossSoundInstance bossTransitionMusic;
@@ -29,15 +34,15 @@ public class UniqueBossMusicManager {
     int phaseForTransition;
     int phaseForMusicChange;
     boolean hasCustomMusic;
-    GenericUniqueBossEntity.Phase phase;
+    IPhaseMusicEntity.Phase phase;
     Set<BossSoundInstance> layers = new HashSet<>();
     boolean finishedPlaying = false;
 
-    private UniqueBossMusicManager(GenericUniqueBossEntity boss)
+    private UniqueBossMusicManager(IPhaseMusicEntity boss)
     {
         this.genericBoss = boss;
         this.manager = Minecraft.getInstance().getSoundManager();
-        phase = GenericUniqueBossEntity.Phase.values()[boss.getPhase()];
+        phase = IPhaseMusicEntity.Phase.values()[boss.getPhase()];
         phaseForTransition = boss.usePhaseAsTransition();
         phaseForMusicChange = boss.usePhaseForMusicChange();
 
@@ -197,7 +202,7 @@ public class UniqueBossMusicManager {
         }
     }
 
-    public static void createOrResumeInstance(GenericUniqueBossEntity boss)
+    public static void createOrResumeInstance(IPhaseMusicEntity boss)
     {
         if (INSTANCE == null || INSTANCE.isDonePlaying())
         {
@@ -209,9 +214,9 @@ public class UniqueBossMusicManager {
         }
     }
 
-    public static void stop(GenericUniqueBossEntity boss)
+    public static void stop(IPhaseMusicEntity boss)
     {
-        if (INSTANCE != null && INSTANCE.genericBoss.getUUID().equals(boss.getUUID()))
+        if (INSTANCE != null && INSTANCE.genericBoss.getEntityUUID().equals(boss.getEntityUUID()))
         {
             INSTANCE.stopLayers();
             INSTANCE.finishedPlaying = true;
@@ -224,14 +229,14 @@ public class UniqueBossMusicManager {
         {
             return;
         }
-        if (genericBoss.isDeadOrDying() || genericBoss.isRemoved())
+        if (genericBoss.isEntityDeadOrDying() || genericBoss.isEntityRemoved())
         {
             stopLayers();
             finishedPlaying = true;
             return;
         }
 
-        var bossPhase = GenericUniqueBossEntity.Phase.values()[genericBoss.getPhase()];
+        var bossPhase = IPhaseMusicEntity.Phase.values()[genericBoss.getPhase()];
         int transitionPhase = genericBoss.usePhaseAsTransition();
         int changePhase = genericBoss.usePhaseForMusicChange();
 
@@ -249,17 +254,17 @@ public class UniqueBossMusicManager {
                 case SecondPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 1)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SecondPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SecondPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SecondPhase;
+                            phase = IPhaseMusicEntity.Phase.SecondPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 1)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SecondPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SecondPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SecondPhase;
+                            phase = IPhaseMusicEntity.Phase.SecondPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -268,17 +273,17 @@ public class UniqueBossMusicManager {
                 case ThirdPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 2)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.ThirdPhase)
+                        if (phase != IPhaseMusicEntity.Phase.ThirdPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.ThirdPhase;
+                            phase = IPhaseMusicEntity.Phase.ThirdPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 2)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.ThirdPhase)
+                        if (phase != IPhaseMusicEntity.Phase.ThirdPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.ThirdPhase;
+                            phase = IPhaseMusicEntity.Phase.ThirdPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -287,17 +292,17 @@ public class UniqueBossMusicManager {
                 case FourthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 3)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.FourthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.FourthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.FourthPhase;
+                            phase = IPhaseMusicEntity.Phase.FourthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 3)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.FourthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.FourthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.FourthPhase;
+                            phase = IPhaseMusicEntity.Phase.FourthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -306,17 +311,17 @@ public class UniqueBossMusicManager {
                 case FifthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 4)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.FifthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.FifthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.FifthPhase;
+                            phase = IPhaseMusicEntity.Phase.FifthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 4)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.FifthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.FifthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.FifthPhase;
+                            phase = IPhaseMusicEntity.Phase.FifthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -325,17 +330,17 @@ public class UniqueBossMusicManager {
                 case SixthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 5)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SixthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SixthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SixthPhase;
+                            phase = IPhaseMusicEntity.Phase.SixthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 5)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SixthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SixthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SixthPhase;
+                            phase = IPhaseMusicEntity.Phase.SixthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -344,17 +349,17 @@ public class UniqueBossMusicManager {
                 case SeventhPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 6)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SeventhPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SeventhPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SeventhPhase;
+                            phase = IPhaseMusicEntity.Phase.SeventhPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 6)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.SeventhPhase)
+                        if (phase != IPhaseMusicEntity.Phase.SeventhPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.SeventhPhase;
+                            phase = IPhaseMusicEntity.Phase.SeventhPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -363,17 +368,17 @@ public class UniqueBossMusicManager {
                 case EighthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 7)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.EighthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.EighthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.EighthPhase;
+                            phase = IPhaseMusicEntity.Phase.EighthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 7)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.EighthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.EighthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.EighthPhase;
+                            phase = IPhaseMusicEntity.Phase.EighthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -382,17 +387,17 @@ public class UniqueBossMusicManager {
                 case NinethPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 8)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.NinethPhase)
+                        if (phase != IPhaseMusicEntity.Phase.NinethPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.NinethPhase;
+                            phase = IPhaseMusicEntity.Phase.NinethPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 8)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.NinethPhase)
+                        if (phase != IPhaseMusicEntity.Phase.NinethPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.NinethPhase;
+                            phase = IPhaseMusicEntity.Phase.NinethPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -401,17 +406,17 @@ public class UniqueBossMusicManager {
                 case TenthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 9)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.TenthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.TenthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.TenthPhase;
+                            phase = IPhaseMusicEntity.Phase.TenthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 9)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.TenthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.TenthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.TenthPhase;
+                            phase = IPhaseMusicEntity.Phase.TenthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -420,17 +425,17 @@ public class UniqueBossMusicManager {
                 case EleventhPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 10)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.EleventhPhase)
+                        if (phase != IPhaseMusicEntity.Phase.EleventhPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.EleventhPhase;
+                            phase = IPhaseMusicEntity.Phase.EleventhPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 10)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.EleventhPhase)
+                        if (phase != IPhaseMusicEntity.Phase.EleventhPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.EleventhPhase;
+                            phase = IPhaseMusicEntity.Phase.EleventhPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -439,33 +444,33 @@ public class UniqueBossMusicManager {
                 case TwelfthPhase -> {
                     if (genericBoss.changeMusicOnPhaseChange() && genericBoss.hasTransitionPhase() && transitionPhase == 11)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.TwelfthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.TwelfthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.TwelfthPhase;
+                            phase = IPhaseMusicEntity.Phase.TwelfthPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         }
                     } else if (genericBoss.changeMusicOnPhaseChange() && changePhase == 11)
                     {
-                        if (phase != GenericUniqueBossEntity.Phase.TwelfthPhase)
+                        if (phase != IPhaseMusicEntity.Phase.TwelfthPhase)
                         {
-                            phase = GenericUniqueBossEntity.Phase.TwelfthPhase;
+                            phase = IPhaseMusicEntity.Phase.TwelfthPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
                     }
                 }
                 /*case ThirdPhase -> {
-                    if (phase != GenericUniqueBossEntity.Phase.ThirdPhase)
+                    if (phase != IPhaseMusicEntity.Phase.ThirdPhase)
                     {
                         if (genericBoss.changeMusicOnPhaseChange() && genericBoss.usePhaseAsTransition())
                         {
-                            phase = GenericUniqueBossEntity.Phase.ThirdPhase;
+                            phase = IPhaseMusicEntity.Phase.ThirdPhase;
                             stopLayers();
                             playTransitionPhaseMusic();
                         } else if (genericBoss.changeMusicOnPhaseChange())
                         {
-                            phase = GenericUniqueBossEntity.Phase.ThirdPhase;
+                            phase = IPhaseMusicEntity.Phase.ThirdPhase;
                             stopLayers();
                             playAltPhaseMusic();
                         }
@@ -516,14 +521,14 @@ public class UniqueBossMusicManager {
         }
     }
 
-    public void triggerResumeMusic(GenericUniqueBossEntity boss)
+    public void triggerResumeMusic(IPhaseMusicEntity boss)
     {
-        if (boss.getUUID().equals(this.genericBoss.getUUID()))
+        if (boss.getEntityUUID().equals(this.genericBoss.getEntityUUID()))
         {
             this.genericBoss = boss;
         }
 
-        if (this.genericBoss.isRemoved())
+        if (this.genericBoss.isEntityRemoved())
         {
             layers.forEach((sound) -> {
                 if (!manager.isActive(sound))
