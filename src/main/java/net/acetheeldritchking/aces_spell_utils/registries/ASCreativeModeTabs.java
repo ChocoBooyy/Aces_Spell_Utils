@@ -38,6 +38,9 @@ public class ASCreativeModeTabs {
                         output.accept(ExampleItemRegistry.EXAMPLE_CHROMATIC_ABERRATION.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_TRAIL.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_RIBBON.get());
+                        output.accept(ExampleItemRegistry.EXAMPLE_ROAR.get());
+                        output.accept(ExampleItemRegistry.EXAMPLE_ROAR_RING.get());
+                        output.accept(ExampleItemRegistry.EXAMPLE_DOME.get());
                         // Armor
                         output.accept(ExampleItemRegistry.EXAMPLE_ARMOR_HELMET.get());
                         output.accept(ExampleItemRegistry.EXAMPLE_ARMOR_CHESTPLATE.get());
