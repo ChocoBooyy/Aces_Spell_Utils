@@ -17,7 +17,10 @@ import net.acetheeldritchking.aces_spell_utils.registries.ASAttributeRegistry;
 import net.acetheeldritchking.aces_spell_utils.utils.ASTags;
 import net.acetheeldritchking.aces_spell_utils.utils.ASUtils;
 import net.acetheeldritchking.aces_spell_utils.utils.AcesSpellUtilsConfig;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -26,9 +29,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -748,81 +754,105 @@ public class AcesSpellUtilsServerEvents {
         }
     }
 
+    private static final String WAS_KILLED_BY_ENTITY = "wasKilled";
+    private static final String KEEP_INV = "keepInv";
+
     @SubscribeEvent
-    public static void addPlayersToKeepInvListEvent(EntityJoinLevelEvent event)
+    public static void keepInvEntityPlayerDeathEvent(LivingDeathEvent event)
     {
-        if (!(event.getLevel() instanceof ServerLevel serverLevel) || event.loadedFromDisk()) return;
-
         var entity = event.getEntity();
+        var killah = event.getSource().getDirectEntity();
+        Level level = entity.level();
 
-        if (entity instanceof IKeepInventoryEntity keepInventoryEntity)
+        if (!(entity instanceof ServerPlayer serverPlayer)) return;
+        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+
+        // Detect if the player is in the radius of the killer
+        List<LivingEntity> entitiesNearby = entity.level().getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(IKeepInventoryEntity.range * 2));
+        for (LivingEntity livingEntity : entitiesNearby)
         {
-            AcesSpellUtils.LOGGER.debug("Is it a keep inv entity (join)?");
-            double rangeSqr = keepInventoryEntity.keepInventoryDetectionRange();
-            rangeSqr *= rangeSqr;
-            Vec3 center = entity.position();
-            List<ServerPlayer> keepInvPlayers = new ArrayList<>();
-            for (ServerPlayer player : serverLevel.players())
+            if (livingEntity instanceof IKeepInventoryEntity keepInventoryEntity)
             {
-                if (player.isCreative() || player.isSpectator() || player.distanceToSqr(center) > rangeSqr) {
-                    continue;
-                }
-                keepInvPlayers.add(player);
-                keepInventoryEntity.setParticipantsFromServerPlayers(keepInvPlayers);
-
-                for (int i = 0; i < keepInvPlayers.size(); i++)
-                {
-                    AcesSpellUtils.LOGGER.debug("participants (list event): " + keepInvPlayers.get(i));
-                }
+                CompoundTag inv;
             }
         }
     }
 
-    @SubscribeEvent
-    public static void keepInvPlayerListRestoreEvent(PlayerEvent.Clone event)
-    {
-        var oldEntity = event.getOriginal();
-        var entity = event.getEntity();
-        var killer = oldEntity.getLastAttacker();
-
-        if (!(entity.level() instanceof ServerLevel serverLevel)) return;
-
-        if (killer instanceof IKeepInventoryEntity keepInventoryEntity && event.isWasDeath())
-        {
-            AcesSpellUtils.LOGGER.debug("Is it a keep inv entity?");
-            if (oldEntity instanceof ServerPlayer oldPlayer && entity instanceof ServerPlayer newPlayer)
-            {
-                ServerPlayer participant = keepInventoryEntity.getParticipantsFromServer(serverLevel);
-                AcesSpellUtils.LOGGER.debug("participants: " + participant);
-                if (oldPlayer.is(participant))
-                {
-                    AcesSpellUtils.LOGGER.debug("Do we even go here?");
-                    newPlayer.getInventory().replaceWith(oldPlayer.getInventory());
-                    newPlayer.experienceLevel = oldPlayer.experienceLevel;
-                    newPlayer.totalExperience = oldPlayer.totalExperience;
-                    newPlayer.experienceProgress = oldPlayer.experienceProgress;
-                    newPlayer.setScore(oldPlayer.getScore());
-                }
-            }
-            /*double rangeSqr = keepInventoryEntity.keepInventoryDetectionRange();
-            rangeSqr *= rangeSqr;
-            Vec3 center = killer.position();
-            for (ServerPlayer player : serverLevel.players())
-            {
-                if (player.isCreative() || player.isSpectator() || player.distanceToSqr(center) > rangeSqr) {
-                    continue;
-                }
-                ServerPlayer participant = keepInventoryEntity.getParticipantsFromServer(serverLevel);
-
-                if (player.is(participant))
-                {
-                    player.getInventory().replaceWith(participant.getInventory());
-                    player.experienceLevel = participant.experienceLevel;
-                    player.totalExperience = participant.totalExperience;
-                    player.experienceProgress = participant.experienceProgress;
-                    player.setScore(participant.getScore());
-                }
-            }*/
-        }
-    }
+//    @SubscribeEvent
+//    public static void addPlayersToKeepInvListEvent(EntityJoinLevelEvent event)
+//    {
+//        if (!(event.getLevel() instanceof ServerLevel serverLevel) || event.loadedFromDisk()) return;
+//
+//        var entity = event.getEntity();
+//
+//        if (entity instanceof IKeepInventoryEntity keepInventoryEntity)
+//        {
+//            AcesSpellUtils.LOGGER.debug("Is it a keep inv entity (join)?");
+//            double rangeSqr = keepInventoryEntity.keepInventoryDetectionRange();
+//            rangeSqr *= rangeSqr;
+//            Vec3 center = entity.position();
+//            List<ServerPlayer> keepInvPlayers = new ArrayList<>();
+//            for (ServerPlayer player : serverLevel.players())
+//            {
+//                if (player.isCreative() || player.isSpectator() || player.distanceToSqr(center) > rangeSqr) {
+//                    continue;
+//                }
+//                keepInvPlayers.add(player);
+//                keepInventoryEntity.setParticipantsFromServerPlayers(keepInvPlayers);
+//
+//                for (int i = 0; i < keepInvPlayers.size(); i++)
+//                {
+//                    AcesSpellUtils.LOGGER.debug("participants (list event): " + keepInvPlayers.get(i));
+//                }
+//            }
+//        }
+//    }
+//
+//    @SubscribeEvent
+//    public static void keepInvPlayerListRestoreEvent(PlayerEvent.Clone event)
+//    {
+//        var oldEntity = event.getOriginal();
+//        var entity = event.getEntity();
+//        var killer = oldEntity.getLastAttacker();
+//
+//        if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+//
+//        if (killer instanceof IKeepInventoryEntity keepInventoryEntity && event.isWasDeath())
+//        {
+//            AcesSpellUtils.LOGGER.debug("Is it a keep inv entity?");
+//            if (oldEntity instanceof ServerPlayer oldPlayer && entity instanceof ServerPlayer newPlayer)
+//            {
+//                ServerPlayer participant = keepInventoryEntity.getParticipantsFromServer(serverLevel);
+//                AcesSpellUtils.LOGGER.debug("participants: " + participant);
+//                if (oldPlayer.is(participant))
+//                {
+//                    AcesSpellUtils.LOGGER.debug("Do we even go here?");
+//                    newPlayer.getInventory().replaceWith(oldPlayer.getInventory());
+//                    newPlayer.experienceLevel = oldPlayer.experienceLevel;
+//                    newPlayer.totalExperience = oldPlayer.totalExperience;
+//                    newPlayer.experienceProgress = oldPlayer.experienceProgress;
+//                    newPlayer.setScore(oldPlayer.getScore());
+//                }
+//            }
+//            /*double rangeSqr = keepInventoryEntity.keepInventoryDetectionRange();
+//            rangeSqr *= rangeSqr;
+//            Vec3 center = killer.position();
+//            for (ServerPlayer player : serverLevel.players())
+//            {
+//                if (player.isCreative() || player.isSpectator() || player.distanceToSqr(center) > rangeSqr) {
+//                    continue;
+//                }
+//                ServerPlayer participant = keepInventoryEntity.getParticipantsFromServer(serverLevel);
+//
+//                if (player.is(participant))
+//                {
+//                    player.getInventory().replaceWith(participant.getInventory());
+//                    player.experienceLevel = participant.experienceLevel;
+//                    player.totalExperience = participant.totalExperience;
+//                    player.experienceProgress = participant.experienceProgress;
+//                    player.setScore(participant.getScore());
+//                }
+//            }*/
+//        }
+//    }
 }

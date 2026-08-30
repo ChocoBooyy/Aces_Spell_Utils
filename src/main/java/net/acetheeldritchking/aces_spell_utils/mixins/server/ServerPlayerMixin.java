@@ -1,5 +1,7 @@
 package net.acetheeldritchking.aces_spell_utils.mixins.server;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.acetheeldritchking.aces_spell_utils.entity.mobs.IKeepInventoryEntity;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // Do I even use this? Who knows if I will
 @Mixin(ServerPlayer.class)
 public class ServerPlayerMixin {
-    @Inject(method = "restoreFrom", at = @At(value = "TAIL", target = "Lnet/minecraft/server/level/ServerPlayer;restoreFrom(Lnet/minecraft/server/level/ServerPlayer;Z)V"))
-    public void restoreFrom(ServerPlayer that, boolean keepEverything, CallbackInfo ci)
+    @WrapMethod(method = "restoreFrom")
+    public void restoreFrom(ServerPlayer that, boolean keepEverything, Operation<Void> original)
     {
         asu$applyIKeepInvEntityPerks(that);
     }
@@ -23,7 +25,7 @@ public class ServerPlayerMixin {
     {
         ServerPlayer serverPlayer = (ServerPlayer) (Object) this;
 
-        if (serverPlayer.getLastAttacker() instanceof IKeepInventoryEntity) {
+        if (serverPlayer.getLastHurtMob() instanceof IKeepInventoryEntity) {
             serverPlayer.getInventory().replaceWith(that.getInventory());
             serverPlayer.experienceLevel = that.experienceLevel;
             serverPlayer.totalExperience = that.totalExperience;
