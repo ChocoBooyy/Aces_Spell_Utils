@@ -73,6 +73,8 @@
   "item.aces_spell_utils.example_imbue_curio.desc": "A strange object, hot to the touch",
   "item.aces_spell_utils.example_passive_ability_spellbook": "Cosmonomicon",
   "item.aces_spell_utils.example_passive_ability_spellbook.desc": "On hit, summon a comet from above the entity's head",
+  "item.aces_spell_utils.example_unqiue_ability_spellbook": "Nexicon",
+  "item.aces_spell_utils.example_unqiue_ability_spellbook.desc": "On hit, do smth evil",
   "item.aces_spell_utils.example_loot_bag": "Echo of Tyros Loot Bag",
   "item.aces_spell_utils.example_loot_bag.desc": "Contains loot from Echo of Tyros, First Flamebearer",
   "item.aces_spell_utils.example_impact_frame_white": "Example Impact Frame (White)",

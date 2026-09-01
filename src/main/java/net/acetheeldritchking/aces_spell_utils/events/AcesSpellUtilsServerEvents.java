@@ -21,6 +21,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -43,6 +44,7 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -754,14 +756,10 @@ public class AcesSpellUtilsServerEvents {
         }
     }
 
-    private static final String WAS_KILLED_BY_ENTITY = "wasKilled";
-    private static final String KEEP_INV = "keepInv";
-
     @SubscribeEvent
     public static void keepInvEntityPlayerDeathEvent(LivingDeathEvent event)
     {
         var entity = event.getEntity();
-        var killah = event.getSource().getDirectEntity();
         Level level = entity.level();
 
         if (!(entity instanceof ServerPlayer serverPlayer)) return;
@@ -773,8 +771,128 @@ public class AcesSpellUtilsServerEvents {
         {
             if (livingEntity instanceof IKeepInventoryEntity keepInventoryEntity)
             {
-                CompoundTag inv;
+                CompoundTag inv = saveInventory(serverPlayer.getInventory());
+                serverPlayer.getPersistentData().putBoolean(IKeepInventoryEntity.WAS_KILLED_BY_ENTITY, true);
+                serverPlayer.getPersistentData().put(IKeepInventoryEntity.KEEP_INV, inv);
+
+                serverPlayer.restoreFrom(serverPlayer, true);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void keepInvPreventDrops(LivingDropsEvent event)
+    {
+        var entity = event.getEntity();
+        if (!(entity instanceof ServerPlayer serverPlayer)) return;
+        if (serverPlayer.getPersistentData().getBoolean(IKeepInventoryEntity.WAS_KILLED_BY_ENTITY))
+        {
+            event.getDrops().clear();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onClone(PlayerEvent.Clone event)
+    {
+        if (!event.isWasDeath()) return;
+
+        Player ogPlayer = event.getOriginal();
+        Player newPlayer = event.getEntity();
+
+        CompoundTag persistentData = ogPlayer.getPersistentData();
+        if (!persistentData.getBoolean(IKeepInventoryEntity.WAS_KILLED_BY_ENTITY)) return;
+
+        if (persistentData.contains(IKeepInventoryEntity.KEEP_INV, Tag.TAG_COMPOUND))
+        {
+            CompoundTag inv = persistentData.getCompound(IKeepInventoryEntity.KEEP_INV);
+            restoreInventory(newPlayer.getInventory(), inv);
+        }
+
+        newPlayer.getPersistentData().remove(IKeepInventoryEntity.WAS_KILLED_BY_ENTITY);
+        newPlayer.getPersistentData().remove(IKeepInventoryEntity.KEEP_INV);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawnEvent(PlayerEvent.PlayerRespawnEvent event)
+    {
+        var entity = event.getEntity();
+
+        if (!(entity instanceof ServerPlayer serverPlayer)) return;
+
+        CompoundTag persistentData = serverPlayer.getPersistentData();
+
+        if (!persistentData.getBoolean(IKeepInventoryEntity.WAS_KILLED_BY_ENTITY)) return;
+
+        if (persistentData.contains(IKeepInventoryEntity.KEEP_INV, Tag.TAG_COMPOUND))
+        {
+            CompoundTag inv = persistentData.getCompound(IKeepInventoryEntity.KEEP_INV);
+            restoreInventory(serverPlayer.getInventory(), inv);
+        }
+    }
+
+    private static CompoundTag saveInventory(Inventory inv) {
+        CompoundTag root = new CompoundTag();
+
+        ListTag items = new ListTag();
+        for (int i = 0; i < inv.items.size(); i++) {
+            ItemStack st = inv.items.get(i);
+            CompoundTag t = new CompoundTag();
+            t.putByte("Slot", (byte) i);
+            if (!st.isEmpty()) st.save(inv.player.registryAccess(), t);
+            items.add(t);
+        }
+        root.put("Items", items);
+
+        ListTag armor = new ListTag();
+        for (int i = 0; i < inv.armor.size(); i++) {
+            ItemStack st = inv.armor.get(i);
+            CompoundTag t = new CompoundTag();
+            t.putByte("Slot", (byte) i);
+            if (!st.isEmpty()) st.save(inv.player.registryAccess(), t);
+            armor.add(t);
+        }
+        root.put("Armor", armor);
+
+        ListTag offhand = new ListTag();
+        for (int i = 0; i < inv.offhand.size(); i++) {
+            ItemStack st = inv.offhand.get(i);
+            CompoundTag t = new CompoundTag();
+            t.putByte("Slot", (byte) i);
+            if (!st.isEmpty()) st.save(inv.player.registryAccess(), t);
+            offhand.add(t);
+        }
+        root.put("Offhand", offhand);
+
+        return root;
+    }
+
+    private static void restoreInventory(Inventory inv, CompoundTag root) {
+        inv.items.replaceAll(ignored -> ItemStack.EMPTY);
+        inv.armor.replaceAll(ignored -> ItemStack.EMPTY);
+        inv.offhand.replaceAll(ignored -> ItemStack.EMPTY);
+
+        ListTag items = root.getList("Items", Tag.TAG_COMPOUND);
+        for (int i = 0; i < items.size(); i++) {
+            CompoundTag t = items.getCompound(i);
+            int slot = t.getByte("Slot") & 255;
+            ItemStack st = ItemStack.parseOptional(inv.player.registryAccess(), t);
+            if (slot >= 0 && slot < inv.items.size()) inv.items.set(slot, st);
+        }
+
+        ListTag armor = root.getList("Armor", Tag.TAG_COMPOUND);
+        for (int i = 0; i < armor.size(); i++) {
+            CompoundTag t = armor.getCompound(i);
+            int slot = t.getByte("Slot") & 255;
+            ItemStack st = ItemStack.parseOptional(inv.player.registryAccess(), t);
+            if (slot >= 0 && slot < inv.armor.size()) inv.armor.set(slot, st);
+        }
+
+        ListTag offhand = root.getList("Offhand", Tag.TAG_COMPOUND);
+        for (int i = 0; i < offhand.size(); i++) {
+            CompoundTag t = offhand.getCompound(i);
+            int slot = t.getByte("Slot") & 255;
+            ItemStack st = ItemStack.parseOptional(inv.player.registryAccess(), t);
+            if (slot >= 0 && slot < inv.offhand.size()) inv.offhand.set(slot, st);
         }
     }
 

@@ -16,6 +16,8 @@ public interface IKeepInventoryEntity {
 
     public List<UUID> playerIDs = new ArrayList<>();
     int range = 128;
+    static final String WAS_KILLED_BY_ENTITY = "wasKilled";
+    static final String KEEP_INV = "keepInv";
 
     public default void setParticipantsFromServerPlayers(List<? extends ServerPlayer> players)
     {
