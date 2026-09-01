@@ -3,6 +3,7 @@ package net.acetheeldritchking.aces_spell_utils.registries;
 import io.redspace.ironsspellbooks.item.curios.CurioBaseItem;
 import io.redspace.ironsspellbooks.util.ItemPropertiesHelper;
 import net.acetheeldritchking.aces_spell_utils.AcesSpellUtils;
+import net.acetheeldritchking.aces_spell_utils.items.curios.PassiveAbilityUniqueSpellbook;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.armor.ExampleWarlockArmorItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExampleImbueCurioItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExamplePassiveAbilitySpellbook;
@@ -10,6 +11,7 @@ import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.Exampl
 import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.ExampleSheathCurioItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleChromaticAberrationItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleDomeItem;
+import net.acetheeldritchking.aces_spell_utils.items.example.items.curios.*;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleImpactFrameItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExampleLootBagItem;
 import net.acetheeldritchking.aces_spell_utils.items.example.items.misc.ExamplePresetStaffItem;
@@ -50,6 +52,9 @@ public class ExampleItemRegistry {
 
     // Example Passive Ability Spellbook
     public static final DeferredHolder<Item, Item> EXAMPLE_PASSIVE_ABILITY_SPELLBOOK = ITEMS.register("example_passive_ability_spellbook", ExamplePassiveAbilitySpellbook::new);
+
+    // Example Passive Ability Unique Spellbook
+    public static final DeferredHolder<Item, Item> EXAMPLE_PASSIVE_UNIQUE_ABILITY_SPELLBOOK = ITEMS.register("example_unqiue_ability_spellbook", ExamplePassiveAbilityUniqueSpellbook::new);
 
     // Example Magic Gun
     public static final DeferredHolder<Item, Item> EXAMPLE_GUN = ITEMS.register("example_gun", ExampleGunItem::new);
